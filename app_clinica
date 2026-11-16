@@ -67,6 +67,12 @@ def unauthorized():
     return redirect(url_for("login"))
 
 
+def normalizar_whatsapp(numero):
+    """Mantém somente dígitos e rejeita números fora do tamanho esperado."""
+    digitos = "".join(caractere for caractere in (numero or "") if caractere.isdigit())
+    return digitos if 10 <= len(digitos) <= 15 else ""
+
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -109,7 +115,9 @@ def create_app(test_config=None):
             select(Service).where(Service.active.is_(True)).order_by(Service.name)
         ).scalars().all()
         return render_template(
-            "services.html", services=service_list, whatsapp=app.config["CLINIC_WHATSAPP"]
+            "services.html",
+            services=service_list,
+            whatsapp=normalizar_whatsapp(app.config.get("CLINIC_WHATSAPP")),
         )
 
     @app.route("/admin/entrar", methods=["GET", "POST"])
